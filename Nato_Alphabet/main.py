@@ -1,10 +1,14 @@
-with open("file1.txt") as file:
-    file1 = file.read().splitlines()
+import random
 
-with open("file2.txt") as file:
-    file2 = file.read().splitlines()
+names = ["Alex", "Beth", "Caroline", "Dave", "Eleanor"]
 
-result = [int(num) for num in file1 if num in file2]
-# Write your code above 👆
+student_scores = {student: random.randint(0, 100) for student in names}
+print(student_scores)
 
-print(result)
+passed_students = {
+    student: score
+    for (student, score) in student_scores.items()
+    if score > 59
+}
+
+print(passed_students)
