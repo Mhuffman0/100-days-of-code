@@ -1,14 +1,8 @@
-import random
+sentence = "What is the Airspeed Velocity of an Unladen Swallow?"
+# Don't change code above 👆
 
-names = ["Alex", "Beth", "Caroline", "Dave", "Eleanor"]
+result = {word: len(word) for word in sentence.split()}
+# Write your code below:
 
-student_scores = {student: random.randint(0, 100) for student in names}
-print(student_scores)
 
-passed_students = {
-    student: score
-    for (student, score) in student_scores.items()
-    if score > 59
-}
-
-print(passed_students)
+print(result)
