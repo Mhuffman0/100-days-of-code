@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 import random
 import pyperclip
+import json
 
 PASSWORD_LEN = 14
 LABEL_WIDTH = 13
@@ -33,12 +34,16 @@ def create_password():
 
 # ---------------------------- SAVE PASSWORD ------------------------------- #
 def save_password():
+    website = website_entry.get()
+    username = username_entry.get()
+    password = password_entry.get()
     fields = {
-        "website": website_entry.get(),
-        "username": username_entry.get(),
-        "password": password_entry.get(),
+        website: {
+            "username": username,
+            "password": password,
+        }
     }
-    missing_fields = [field for field in fields if not fields[field]]
+    missing_fields = [field for field in fields[website] if not fields[website][field]]
     if missing_fields:
         messagebox.showwarning(
             title="Missing Entries",
@@ -49,20 +54,44 @@ def save_password():
         )
     else:
         messagebox.askokcancel(
-            title=fields["website"],
+            title=website,
             message=(
                 "Save the following password to file?\n"
-                f"username: {fields['username']}\n"
-                f"password: {fields['password']}"
+                f"username: {fields[website]['username']}\n"
+                f"password: {fields[website]['password']}"
             ),
         )
-        with open("data.txt", "a") as file:
-            file.write(" | ".join(fields.values()) + "\n")
+        with open("data.json", "r") as file:
+            try:
+                data = json.load(file)
+                data.update(fields)
+            except json.decoder.JSONDecodeError:
+                data = {}
+        with open("data.json", "w") as file:
+            json.dump(data, file, indent=4)
         website_entry.delete(0, END)
         username_entry.delete(0, END)
         username_entry.insert(0, DEFAULT_USERNAME)
         password_entry.delete(0, END)
 
+
+# ---------------------------- FIND PASSWORD ------------------------------- #
+def find_password():
+    website = website_entry.get()
+    with open("data.json", "r") as file:
+        passwords = json.load(file)
+    try:
+        username_entry.delete(0, END)
+        username_entry.insert(0, passwords[website]['username'])
+        password_entry.delete(0, END)
+        password_entry.insert(0, passwords[website]['password'])
+    except KeyError:
+        messagebox.showwarning(
+            title="Missing Password",
+            message=(
+                "Unable to find a password for this website."
+            ),
+        )
 
 # ---------------------------- UI SETUP ------------------------------- #
 window = Tk()
@@ -86,7 +115,7 @@ password_label.grid(column=0, row=3)
 
 # Entry Fields
 website_entry = Entry()
-website_entry.grid(column=1, row=1, columnspan=2, sticky="EW")
+website_entry.grid(column=1, row=1, sticky="EW")
 website_entry.focus()
 
 username_entry = Entry()
@@ -97,8 +126,11 @@ password_entry = Entry()
 password_entry.grid(column=1, row=3, sticky="EW")
 
 # Buttons
-create_password_button = Button(text="Generate Password", command=create_password)
-create_password_button.grid(column=2, row=3, sticky="EW")
+search_website_button = Button(text="Search Website", command=find_password)
+search_website_button.grid(column=2, row=1, sticky="EW")
+
+generate_password_button = Button(text="Generate Password", command=create_password)
+generate_password_button.grid(column=2, row=3, sticky="EW")
 
 add_password_button = Button(text="Add Password", width=40, command=save_password)
 add_password_button.grid(column=1, row=4, columnspan=2, sticky="EW")
