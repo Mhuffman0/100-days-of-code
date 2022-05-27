@@ -78,20 +78,19 @@ def save_password():
 # ---------------------------- FIND PASSWORD ------------------------------- #
 def find_password():
     website = website_entry.get()
-    with open("data.json", "r") as file:
-        passwords = json.load(file)
     try:
+        with open("data.json", "r") as file:
+            passwords = json.load(file)
         username_entry.delete(0, END)
-        username_entry.insert(0, passwords[website]['username'])
+        username_entry.insert(0, passwords[website]["username"])
         password_entry.delete(0, END)
-        password_entry.insert(0, passwords[website]['password'])
-    except KeyError:
+        password_entry.insert(0, passwords[website]["password"])
+    except (KeyError, FileNotFoundError):  # , json.decoder.JSONDecodeError):
         messagebox.showwarning(
             title="Missing Password",
-            message=(
-                "Unable to find a password for this website."
-            ),
+            message=("Unable to find a password for this website."),
         )
+
 
 # ---------------------------- UI SETUP ------------------------------- #
 window = Tk()
