@@ -5,6 +5,10 @@ import random
 import csv
 import os
 
+import time
+
+st = time.process_time()
+
 EMAIL_ADDRESS = "huffman.michael30@gmail.com"
 
 now = datetime.datetime.now()
@@ -33,3 +37,5 @@ if todays_birthdays:
                 to_addrs=birthday_boy["email"],
                 msg=f"Subject:Happy Birthday!\n\n{formatted_letter}",
             )
+
+print(f"CPU Execution time:{time.process_time() - st} seconds")
