@@ -1,20 +1,22 @@
-from data import question_data
+import requests
+from html import unescape
 from question_model import Question
 from quiz_brain import QuizBrain
-import random
+from ui import QuizInterface
 
-question_bank = []
+quiz_params = {"amount": 10, "type": "boolean"}
+received = requests.get(url="https://opentdb.com/api.php", params=quiz_params)
+received.raise_for_status()
+question_data = received.json()["results"]
 
-for question in question_data[0]["results"]:
-    new_question = Question(question["question"], question["correct_answer"])
-    question_bank.append(new_question)
 
-random.shuffle(question_bank)
-
-quiz = QuizBrain(question_bank)
-
-while quiz.still_has_questions():
-    quiz.next_question()
+quiz = QuizBrain(
+    [
+        Question(unescape(question["question"]), question["correct_answer"])
+        for question in question_data
+    ]
+)
+quiz_ui = QuizInterface(quiz)
 
 print("You've completed the quiz")
 print(f"Your final score was: {quiz.score}/{quiz.question_number}")

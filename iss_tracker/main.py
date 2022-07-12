@@ -1,34 +1,62 @@
-from tkinter import *
 import requests
+import smtplib
+import time
+from app_password import EMAIL_PASSWORD
+
+LATITUDE = 41.990200
+LONGITUDE = -70.975400
+SENDER_EMAIL_ADDRESS = "huffman.michael30@gmail.com"
+MY_EMAIL_ADDRESS = "mhuffman012@gmail.com"
+DEGREES_OF_ERROR = 5
 
 
-def get_quote():
-    response = requests.get("https://api.kanye.rest/")
+def get_response(url, params=None):
+    response = requests.get(url, params=params)
     response.raise_for_status()
-    quote = response.json()["quote"]
-    canvas.itemconfig(quote_text, text=quote)
+    return response.json()
 
 
-window = Tk()
-window.title("Kanye Says...")
-window.config(padx=50, pady=50)
+def sunrise_sunset_hour(response, value):
+    hour = int(response["results"][value].split("T")[1].split(":")[0])
+    if hour == 0:
+        return 24
+    else:
+        return hour
 
-canvas = Canvas(width=300, height=414)
-background_img = PhotoImage(file="background.png")
-canvas.create_image(150, 207, image=background_img)
-quote_text = canvas.create_text(
-    150,
-    207,
-    width=250,
-    font=("Arial", 30, "bold"),
-    fill="white",
-)
-canvas.grid(row=0, column=0)
 
-kanye_img = PhotoImage(file="kanye.png")
-kanye_button = Button(image=kanye_img, highlightthickness=0, command=get_quote)
-kanye_button.grid(row=1, column=0)
+def within_tolerance(current_value, desired_value):
+    return abs(current_value - desired_value) < DEGREES_OF_ERROR
 
-get_quote()
 
-window.mainloop()
+def is_night():
+    sunrise_sunset_response = get_response(
+        f"https://api.sunrise-sunset.org/json",
+        {"lat": LATITUDE, "lng": LONGITUDE, "formatted": 0},
+    )
+    sunrise = sunrise_sunset_hour(sunrise_sunset_response, "sunrise")
+    sunset = sunrise_sunset_hour(sunrise_sunset_response, "sunset")
+    current_hour = time.gmtime().tm_hour
+    return current_hour > sunset or current_hour < sunrise
+
+
+def check_for_iss():
+    if is_night():
+        iss_response = get_response("http://api.open-notify.org/iss-now")
+        iss_latitude = float(iss_response["iss_position"]["latitude"])
+        iss_longitude = float(iss_response["iss_position"]["longitude"])
+        if within_tolerance(LONGITUDE, iss_longitude) and within_tolerance(
+            LATITUDE, iss_latitude
+        ):
+            with smtplib.SMTP("smtp.gmail.com", port=587) as connection:
+                connection.login(user=SENDER_EMAIL_ADDRESS, password=EMAIL_PASSWORD)
+                connection.sendmail(
+                    from_addr=SENDER_EMAIL_ADDRESS,
+                    to_addrs=MY_EMAIL_ADDRESS,
+                    msg=f"Look up!",
+                )
+
+
+# while True:
+check_for_iss()
+# time.sleep(60)
+print("hi")
