@@ -5,3 +5,4 @@ FlashCardApp/data/words_to_learn.csv
 *password.txt
 *password.py
 *__pycache__/
+*/*.env
