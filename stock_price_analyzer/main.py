@@ -64,7 +64,7 @@ def get_price_difference():
         yesterday_close_prince - two_days_ago_close_prince
     ) / two_days_ago_close_prince
 
-    if percent_price_change > 0.05:
+    if abs(percent_price_change) > 0.05:
         client = Client(
             os.environ["TWILLIO_ACCOUNT_SID"], os.environ["TWILLIO_AUTH_TOKEN"]
         )
