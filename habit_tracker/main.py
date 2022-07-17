@@ -66,10 +66,9 @@ def create_graph():
 
 
 def update_graph(quantity: int = 0, date: str = None, request_type: str = "put"):
-    if not date:
-        date = format_date()
-    upload_to_graph_headers = {"X-USER-TOKEN": token}
+    date = format_date(date)
 
+    upload_to_graph_headers = {"X-USER-TOKEN": token}
     upload_to_graph_params = {"date": format_date(), "quantity": str(quantity)}
     print(
         make_request(
@@ -83,5 +82,5 @@ def update_graph(quantity: int = 0, date: str = None, request_type: str = "put")
 
 # create_account()
 # create_graph()
-update_graph(request_type="delete", date="20220717")
+update_graph(quantity=(6642+3009), request_type="put")
 # update_graph(quantity=5, date="20220716")
