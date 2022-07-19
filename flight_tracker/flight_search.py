@@ -21,9 +21,6 @@ class FlightSearch:
         self.desired_flights = populate_desired_flights(desired_flights)
         self.great_deals = []
 
-    def return_kiwi_auth_headers(self):
-        return
-
     def search_for_iata_codes(self, datamanager: DataManager):
         for row in self.desired_flights:
             if not row.iata_code:
@@ -35,7 +32,7 @@ class FlightSearch:
                 )["locations"][0]["code"]
                 datamanager.update_iata_codes(iata_code=row.iata_code, row_id=row.id)
 
-    def search_for_flights(self, prices):
+    def search_for_flights(self):
         today = datetime.date.today()
         tomorrow = (today + datetime.timedelta(days=1)).strftime("%d/%m/%Y")
         max_look_forward_date = (
@@ -63,10 +60,12 @@ class FlightSearch:
                 headers=self.kiwi_auth_headers,
             )["data"]
 
-            if flight_info:
-                if flight_info[0]["price"] < [
-                    price["lowestPrice"]
-                    for price in prices
-                    if price["city"] == flight_info[0]["cityTo"]
-                ][0]:
-                    self.great_deals.append(flight_info)
+            if flight_info and (
+                flight_info[0]["price"]
+                < [
+                    flight.lowest_price
+                    for flight in self.desired_flights
+                    if flight.city == flight_info[0]["cityTo"]
+                ][0]
+            ):
+                self.great_deals.append(flight_info)
