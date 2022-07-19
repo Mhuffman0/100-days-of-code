@@ -19,8 +19,7 @@ def make_request(
     response = request_type(
         url=url, params=params, data=data, json=json, headers=headers
     )
-    # response.raise_for_status()
-    # print(response.text)
+    response.raise_for_status()
     return response.json()
 
 

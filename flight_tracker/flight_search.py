@@ -1,33 +1,72 @@
 from data_manager import make_request, DataManager
+from flight_data import FlightData
+import datetime
+
+MIN_TIME_IN_CITY = 7
+MAX_TIME_IN_CITY = 28
+DAYS_TO_LOOK_FORWARD = 180
 
 
 class FlightSearch:
     """This class is responsible for talking to the Flight Search API."""
 
-    def __init__(self, fly_from: str,  kiwi_auth_token: str, desired_flights: list):
+    def __init__(
+        self, fly_from: str, kiwi_auth_token: str, desired_flights: list[dict]
+    ):
+        def populate_desired_flights(desired_flights):
+            return [FlightData(row) for row in desired_flights]
+
         self.fly_from = fly_from
-        self.kiwi_auth_token = kiwi_auth_token
-        self.desired_flights = desired_flights
+        self.kiwi_auth_headers = {"apikey": kiwi_auth_token}
+        self.desired_flights = populate_desired_flights(desired_flights)
+        self.great_deals = []
+
+    def return_kiwi_auth_headers(self):
+        return
 
     def search_for_iata_codes(self, datamanager: DataManager):
-        kiwi_headers = {"apikey": self.kiwi_auth_token}
         for row in self.desired_flights:
-            if not row["iataCode"]:
-                row["iataCode"] = make_request(
+            if not row.iata_code:
+                row.iata_code = make_request(
                     request_type="get",
-                    params={"term": row["city"]},
+                    params={"term": row.city},
                     url="https://tequila-api.kiwi.com/locations/query",
-                    headers=kiwi_headers,
+                    headers=self.kiwi_auth_headers,
                 )["locations"][0]["code"]
-                datamanager.update_iata_codes(
-                    iata_code=row["iataCode"], row_id=row["id"]
-                )
+                datamanager.update_iata_codes(iata_code=row.iata_code, row_id=row.id)
 
-    # def search_for_flights(self):
-    #     for row in self.desired_flights:
-    #         params = {
-    #             "fly_from": self.fly_from,
-    #             "fly_to": row["iata_code"],
-    #         }
-    #     # for the flight prices from London (LON) to all the destinations in the Google Sheet.In this project, we're looking only for direct flights, that leave anytime between tomorrow and in 6 months (6x30days) time. We're also looking for round trips that return between 7 and 28 days in length.The currency of the price we get back should be in GBP.
-    #     # https://tequila-api.kiwi.com/v2/search?fly_from=LGA&fly_to=MIA&dateFrom=01/04/2021&dateTo=02/04/2021
+    def search_for_flights(self, prices):
+        today = datetime.date.today()
+        tomorrow = (today + datetime.timedelta(days=1)).strftime("%d/%m/%Y")
+        max_look_forward_date = (
+            today + datetime.timedelta(days=DAYS_TO_LOOK_FORWARD)
+        ).strftime("%d/%m/%Y")
+        for row in self.desired_flights:
+            params = {
+                "fly_from": self.fly_from,
+                "fly_to": row.iata_code,
+                "max_stopovers": 0,
+                "date_from": tomorrow,
+                "date_to": max_look_forward_date,
+                "nights_in_dst_from": MIN_TIME_IN_CITY,
+                "nights_in_dst_to": MAX_TIME_IN_CITY,
+                "flight_type": "round",
+                "curr": "USD",
+                "sort": "price",
+                "limit": 1,
+            }
+
+            flight_info = make_request(
+                request_type="get",
+                params=params,
+                url="https://tequila-api.kiwi.com/v2/search",
+                headers=self.kiwi_auth_headers,
+            )["data"]
+
+            if flight_info:
+                if flight_info[0]["price"] < [
+                    price["lowestPrice"]
+                    for price in prices
+                    if price["city"] == flight_info[0]["cityTo"]
+                ][0]:
+                    self.great_deals.append(flight_info)
