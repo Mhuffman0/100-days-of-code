@@ -20,6 +20,7 @@ def make_request(
         url=url, params=params, data=data, json=json, headers=headers
     )
     response.raise_for_status()
+    # print(response.text)
     return response.json()
 
 
@@ -45,13 +46,35 @@ class DataManager:
         )
 
     def get_flight_data(self):
-        return self.make_sheety_request(request_type="get", url=self.sheety_url)
+        return self.make_sheety_request(
+            request_type="get", url=self.sheety_url + "/prices"
+        )
 
     def update_iata_codes(self, row_id: int, iata_code: str):
-        url = f"{self.sheety_url}/{row_id}"
+        url = f"{self.sheety_url}/prices/{row_id}"
         data = {
             "price": {
                 "iataCode": iata_code,
             }
         }
         self.make_sheety_request(request_type="put", url=url, sheety_data=data)
+
+    def customer_sign_up(self):
+        first_name = input("What is your first name?\n")
+        last_name = input("What is your last name?\n")
+        email = None
+        recheck_email = False
+        while email != recheck_email:
+            email = input("What is your email address?\n")
+            recheck_email = input("What is your email one more time?\n")
+
+        data = {
+            "user": {
+                "firstName": first_name,
+                "lastName": last_name,
+                "email": email,
+            }
+        }
+        return self.make_sheety_request(
+            request_type="post", url=self.sheety_url + "/users", sheety_data=data
+        )
