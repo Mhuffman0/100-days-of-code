@@ -59,6 +59,11 @@ class DataManager:
         }
         self.make_sheety_request(request_type="put", url=url, sheety_data=data)
 
+    def get_customers(self):
+        return self.make_sheety_request(
+            request_type="get", url=self.sheety_url + "/users"
+        )
+
     def customer_sign_up(self):
         first_name = input("What is your first name?\n")
         last_name = input("What is your last name?\n")

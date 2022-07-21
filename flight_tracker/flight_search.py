@@ -32,8 +32,7 @@ class FlightSearch:
                     url="https://tequila-api.kiwi.com/locations/query",
                     headers=self.kiwi_auth_headers,
                 )["locations"][1]["code"]
-                # print(row.iata_code)
-                # datamanager.update_iata_codes(iata_code=row.iata_code, row_id=row.id)
+                datamanager.update_iata_codes(iata_code=row.iata_code, row_id=row.id)
 
     def search_for_flights(self):
         def flight_search(stop_overs: int = 0):
