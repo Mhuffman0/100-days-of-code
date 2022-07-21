@@ -82,5 +82,5 @@ def update_graph(quantity: int = 0, date: str = None, request_type: str = "put")
 
 # create_account()
 # create_graph()
-update_graph(quantity=(6642+3009), request_type="put")
+update_graph(quantity=10_013, request_type="put")
 # update_graph(quantity=5, date="20220716")

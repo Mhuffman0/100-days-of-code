@@ -71,17 +71,17 @@ def make_sheety_request(request_type: str = "post", workout_data: dict = None):
                 "calories": workout["nf_calories"],
             }
         }
-        print(make_request(
-            request_type=request_type,
-            json=sheety_data,
-            url="https://api.sheety.co/a0b700de5ada17cb2d20a8f5580a4735/myWorkouts/workouts",
-            headers=sheety_headers,
-        ))
+        print(
+            make_request(
+                request_type=request_type,
+                json=sheety_data,
+                url=os.environ.get("SHEETY_URL"),
+                headers=sheety_headers,
+            )
+        )
 
 
 user_exercise = input("What was your workout?\n").lower()
 # user_exercise = "walked for 10 seconds then ran for 50 minutes"
 workout_data = make_nutritonix_request(user_exercise)
-make_sheety_request(
-        request_type="post", workout_data=workout_data
-)
+make_sheety_request(request_type="post", workout_data=workout_data)
